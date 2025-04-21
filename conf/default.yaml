@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  # Allowed values are: debug, info, warn, error, panic, fatal
+  logLevel: info
+  enableProfiler: false
+
+database:
+  mongoDB:
+    credential: local
+    uri: mongodb://127.0.0.1:27017/?directConnection=true
+    databaseName: discovery-engine
+    collectionName: obs_0_0
+    username: user
+    password: passwd

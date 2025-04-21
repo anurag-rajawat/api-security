@@ -1,0 +1,811 @@
+"""
+Int64 scalar represents a 64-bit signed integer, typically used for timestamps.
+See: https://gqlgen.com/reference/scalars/#int64
+"""
+scalar Int64
+
+"""
+Map scalar represents a dynamic map or dictionary, allowing for flexible key-value pairs.
+Go equivalent: map[string]interface{}.
+See: https://gqlgen.com/reference/scalars/#map
+"""
+scalar Map
+
+type ApiEvent {
+    id: ID!
+
+    """
+    Metadata providing context and details about the API event.
+    """
+    metadata: ApiEventMetadata!
+
+    """
+    Network-related information, detailing the source and destination of the API call.
+    """
+    network: Network!
+
+    """
+    HTTP request and response details, if applicable.
+    """
+    http: Http!
+
+    """
+    JSON Web Token (JWT) information associated with the API, if authentication was performed using JWT.
+    """
+    user: JwtInfo
+
+    """
+    The number of times this API endpoint has been accessed.
+    """
+    count: Int!
+
+    """
+    A concise summary of the API event.
+    """
+    summary: String!
+
+    # Todo: Document them
+    overallRiskScore: Int
+    overallSeverity: Severity
+
+    """
+    Details about any sensitive data detected within the API event.
+    """
+    sensitiveData: [SensitiveData]
+}
+
+type ApiEventMetadata {
+    """
+    Timestamp when the event was first observed.
+    """
+    timestamp: Int64!
+
+    """
+    Timestamp when the event was last observed.
+    """
+    updatedTime: Int64!
+
+    """
+    Type of API being accessed (e.g., REST, gRPC, GraphQL, SOAP).
+    """
+    apiType: ApiType
+
+    """
+    Indicates whether the API call was authenticated.
+    """
+    isAuthenticated: Boolean
+
+    """
+    ID of the cluster where the API event occurred.
+    """
+    clusterId: Int!
+
+    """
+    Name of the cluster where the API event occurred.
+    """
+    clusterName: String!
+
+    """
+    Hostname of the server or service where the API event originated.
+    """
+    hostname: String!
+
+    """
+    The scheme portion of the URL (e.g. http, https)
+    """
+    scheme: Scheme
+}
+
+enum Scheme {
+    HTTP
+    HTTPS
+}
+
+type Network {
+    """
+    Source workload initiating the network communication.
+    """
+    source: Workload!
+
+    """
+    Destination workload receiving the network communication.
+    """
+    destination: Workload!
+
+    """
+    Network protocol used for communication (e.g., HTTP/1.1, HTTP/2, TCP, UDP).
+    """
+    protocol: String!
+}
+
+"""
+Workload represents a computational entity (e.g., Kubernetes Pod, VM) acting as a
+source or destination in network communication.
+"""
+type Workload {
+    """
+    Metadata associated with the workload, if available.
+    """
+    metadata: WorkloadMetadata
+
+    """
+    IP address of the workload.
+    """
+    ip: String!
+
+    """
+    Port number used by the workload for communication.
+    """
+    port: Int!
+
+    """
+    Type of workload (e.g., Pod, Service, VM).
+    """
+    type: String
+}
+
+type WorkloadMetadata {
+    """
+    Name of the workload.
+    """
+    name: String
+
+    """
+    Kubernetes namespace where the workload is deployed (if applicable).
+    """
+    namespace: String
+
+    """
+    Kubernetes labels associated with the workload (if applicable).
+    """
+    labels: Map
+}
+
+type Http {
+    """
+    Details of the HTTP request.
+    """
+    request: Reqwest!
+
+    """
+    Details of the HTTP response.
+    """
+    response: Ressponse!
+}
+
+"""
+Reqwest represents HTTP request.
+"""
+type Reqwest {
+    """
+    HTTP request headers.
+    """
+    headers: Map
+
+    """
+    HTTP request method (e.g., GET, POST, PUT, DELETE).
+    """
+    method: String!
+
+    """
+    HTTP request path or endpoint.
+    """
+    path: String!
+
+    """
+    HTTP request body.
+    """
+    body: String
+
+    """
+    TLS version used for the request (if applicable).
+    """
+    tlsVersion: String
+}
+
+"""
+Response represents HTTP response.
+"""
+type Ressponse {
+    """
+    HTTP response headers.
+    """
+    headers: Map
+
+    """
+    HTTP response status code.
+    """
+    statusCode: Int!
+
+    """
+    HTTP response body.
+    """
+    body: String
+
+    """
+    TLS version used for the response (if applicable).
+    """
+    tlsVersion: String
+}
+
+type JwtInfo {
+    """
+    Username extracted from the JWT payload.
+    """
+    username: String
+
+    """
+    Email extracted from the JWT payload.
+    """
+    email: String
+
+    """
+    Issuer of the JWT.
+    """
+    issuer: String
+
+    """
+    Subject of the JWT.
+    """
+    subject: String
+
+    """
+    Intended audience of the JWT.
+    """
+    audience: String
+
+    """
+    Expiration time of the JWT.
+    """
+    expirationTime: String
+
+    """
+    Time before which the JWT is not valid.
+    """
+    notBefore: String
+
+    """
+    Time when the JWT was issued.
+    """
+    issuedAt: String
+
+    """
+    Unique identifier of the JWT.
+    """
+    jti: String
+
+    """
+    Algorithm used to sign the JWT.
+    """
+    algorithm: String
+}
+
+"""
+SensitiveData represents information detected as sensitive, along with its metadata.
+"""
+type SensitiveData {
+    """
+    Name of the sensitive data type (e.g., EMAIL, JWT, SSN, CREDIT_CARD).
+    """
+    name: String
+
+    """
+    Severity of the sensitive data exposure.
+    """
+    severity: Severity!
+
+    """
+    Numerical risk score associated with the sensitive data.
+    """
+    riskScore: Int
+
+    """
+    Location within the API event where the sensitive data was found.
+    """
+    location: Location!
+
+    """
+    Tags categorizing the sensitive data (e.g., PII, Financial, Credentials).
+    """
+    tags: [String!]
+}
+
+enum Severity {
+    CRITICAL
+    HIGH
+    MEDIUM
+    LOW
+}
+
+"""
+Location within the API request or response where sensitive data was detected.
+"""
+type Location {
+    """
+    where indicates the specific part of the request or response.
+    """
+    where: Where
+
+    """
+    key is the header key where sensitive data was found.
+    It is only applicable when where is REQUEST_HEADER or RESPONSE_HEADER.
+    """
+    key: String
+
+    """
+    startIndex is the starting index of the sensitive data within the located part.
+    """
+    startIndex: Int
+
+    """
+    endIndex is the ending index of the sensitive data within the located part.
+    """
+    endIndex: Int
+}
+
+enum Where {
+    """
+    Sensitive data found in request headers.
+    """
+    REQUEST_HEADER
+
+    """
+    Sensitive data found in request body.
+    """
+    REQUEST_PAYLOAD
+
+    """
+    Sensitive data found in response headers.
+    """
+    RESPONSE_HEADER
+
+    """
+    Sensitive data found in response body.
+    """
+    RESPONSE_PAYLOAD
+}
+
+"""
+Supported API types.
+"""
+enum ApiType {
+    """
+    Represents a RESTful API.
+    """
+    REST
+
+    """
+    Represents a gRPC API.
+    """
+    GRPC
+}
+
+type ApiEventConnection {
+    """
+    The total number of ApiEvent items, regardless of pagination.
+    """
+    totalCount: Int64!
+
+    """
+    A list of edges representing the ApiEvent items in the current page.
+    """
+    edges: [ApiEventEdge!]!
+
+    """
+    Information about the current page and pagination.
+    """
+    pageInfo: PageInfo!
+}
+
+type ApiEventEdge {
+    """
+    The cursor for this ApiEvent edge, used for pagination.
+    """
+    cursor: ID!
+
+    """
+    The ApiEvent node associated with this edge.
+    """
+    node: ApiEvent!
+}
+
+"""
+Information about the current page in a paginated result set.
+"""
+type PageInfo {
+    """
+    The cursor corresponding to the first item in the current page.
+    """
+    startCursor: ID
+
+    """
+    The cursor corresponding to the last item in the current page.
+    """
+    endCursor: ID
+
+    """
+    Indicates whether there are more items after the current page.
+    """
+    hasNextPage: Boolean!
+
+    """
+    Indicates whether there are more items before the current page.
+    """
+    hasPreviousPage: Boolean!
+}
+
+# --- Filter Input Types ---
+
+"""
+Input for filtering fields of type String.
+"""
+input StringFilterInput {
+    """
+    Equals exact value.
+    """
+    eq: String
+
+    """
+    Not equals exact value.
+    """
+    ne: String
+
+    """
+    Value is in the provided list.
+    """
+    in: [String!]
+
+    """
+    Value is not in the provided list.
+    """
+    nin: [String!]
+
+    """
+    Matches PCRE regular expression (case-sensitive by default).
+    """
+    regex: String
+
+    """
+    Matches PCRE regular expression (case-insensitive).
+    """
+    iregex: String
+}
+
+"""
+Input for filtering fields of type Int.
+"""
+input IntFilterInput {
+    """
+    Equals exact value.
+    """
+    eq: Int
+
+    """
+    Not equals exact value.
+    """
+    ne: Int
+
+    """
+    Value is in the provided list.
+    """
+    in: [Int!]
+
+    """
+    Value is not in the provided list.
+    """
+    nin: [Int!]
+
+    """
+    Less than value.
+    """
+    lt: Int
+
+    """
+    Less than or equal to value.
+    """
+    lte: Int
+
+    """
+    Greater than value.
+    """
+    gt: Int
+
+    """
+    Greater than or equal to value.
+    """
+    gte: Int
+}
+
+"""
+Input for filtering fields of type Int64 (e.g., timestamps).
+"""
+input Int64FilterInput {
+    """
+    Equals exact value.
+    """
+    eq: Int64
+
+    """
+    Not equals exact value.
+    """
+    ne: Int64
+
+    """
+    Less than value.
+    """
+    lt: Int64
+
+    """
+    Less than or equal to value.
+    """
+    lte: Int64
+
+    """
+    Greater than value.
+    """
+    gt: Int64
+
+    """
+    Greater than or equal to value.
+    """
+    gte: Int64
+}
+
+"""
+Input for filtering fields of type Boolean.
+"""
+input BooleanFilterInput {
+    """
+    Equals exact value (true or false).
+    """
+    eq: Boolean
+
+    """
+    Not equals exact value (less common).
+    """
+    ne: Boolean
+}
+
+"""
+Input for filtering ApiType enum fields.
+"""
+input ApiTypeFilterInput {
+    """
+    Equals exact value.
+    """
+    eq: ApiType
+
+    """
+    Not equals exact value.
+    """
+    ne: ApiType
+
+    """
+    Value is in the provided list.
+    """
+    in: [ApiType!]
+
+    """
+    Value is not in the provided list.
+    """
+    nin: [ApiType!]
+}
+
+"""
+Input for filtering Severity enum fields.
+"""
+input SeverityFilterInput {
+    """
+    Equals exact value.
+    """
+    eq: Severity
+
+    """
+    Not equals exact value.
+    """
+    ne: Severity
+
+    """
+    Value is in the provided list.
+    """
+    in: [Severity!]
+
+    """
+    Value is not in the provided list.
+    """
+    nin: [Severity!]
+}
+
+# --- Sorting Input Types ---
+
+"""
+Fields available for sorting ApiEvent results.
+"""
+enum ApiEventSortableField {
+    """
+    Sort by the time the event was first observed.
+    """
+    TIMESTAMP
+
+    """
+    Sort by the time the event was last updated.
+    """
+    UPDATED_TIME
+
+    """
+    Sort by the HTTP request path.
+    """
+    REQUEST_PATH
+
+    """
+    Sort by the HTTP response status code.
+    """
+    STATUS_CODE
+
+    """
+    Sort by the event count.
+    """
+    COUNT
+
+    """
+    Sort by the sensitive data risk score.
+    """
+    RISK_SCORE
+
+    """
+    Sort by the sensitive data severity.
+    """
+    SEVERITY
+}
+
+"""
+Specifies the direction for sorting.
+"""
+enum SortDirection {
+    """
+    Ascending order (default).
+    """
+    ASC
+
+    """
+    Descending order.
+    """
+    DESC
+}
+
+"""
+Specifies the field and direction for sorting ApiEvents.
+"""
+input ApiEventSortInput {
+    field: ApiEventSortableField!
+    direction: SortDirection! = ASC
+}
+
+"""
+Input object containing all filter and pagination parameters for apiEvents query.
+"""
+input Filters {
+    """
+    Filter by specific Cluster IDs.
+    """
+    clusterIds: [Int!]!
+
+    # --- Time Range Filter ---
+    """
+    Filter events occurring at or after this timestamp (inclusive). Applied to metadata.timestamp.
+    """
+    fromTimestamp: Int64
+
+    """
+    Filter events occurring at or before this timestamp (inclusive). Applied to metadata.timestamp.
+    """
+    toTimestamp: Int64
+
+    # --- Metadata Filters ---
+    """
+    Filter by API Type (e.g., REST, GRPC).
+    """
+    apiType: ApiTypeFilterInput
+
+    """
+    Filter by authentication status.
+    """
+    isAuthenticated: BooleanFilterInput
+
+    """
+    Filter by hostname (e.g., service domain name).
+    """
+    hostname: StringFilterInput
+
+    # --- HTTP Filters ---
+    """
+    Filter by HTTP response status code.
+    Supports specific codes (e.g., eq: "404") and families (e.g., eq: "2xx", ne: "5xx").
+    Regex/iregex match against the string representation.
+    Use 'in'/'nin' for multiple specific codes/families.
+    """
+    responseStatusCode: StringFilterInput # Kept as String for family flexibility
+
+    """
+    Filter by HTTP request path.
+    """
+    requestPath: StringFilterInput
+
+    """
+    Filter by HTTP request method.
+    """
+    requestMethod: StringFilterInput
+
+    # --- Network Filters ---
+    """
+    Filter by destination workload IP address.
+    """
+    destinationIp: StringFilterInput
+
+    """
+    Filter by destination workload name (from metadata).
+    """
+    destinationName: StringFilterInput
+
+    """
+    Filter by destination workload type.
+    """
+    destinationType: StringFilterInput
+
+    # --- Sensitive Data Filters ---
+    """
+    Filter by risk score of sensitive data found.
+    If multiple criteria (riskScore, severity) are provided for sensitiveData,
+    it finds events where at least one sensitive data item matches *all* provided criteria ($elemMatch).
+    """
+    sensitiveData_riskScore: IntFilterInput
+
+    """
+    Filter by severity of sensitive data found.
+    If multiple criteria (riskScore, severity) are provided for sensitiveData,
+    it finds events where at least one sensitive data item matches *all* provided criteria ($elemMatch).
+    """
+    sensitiveData_severity: SeverityFilterInput
+    # Todo: Add other sensitive data filters (name, location) here if needed.
+
+    # --- Sorting ---
+    """
+    Specify sorting order for the results. Defaults to _id ascending if not provided.
+    """
+    sortBy: ApiEventSortInput
+
+    # --- Pagination ---
+    """
+    Returns the first n items after the specified cursor.
+    """
+    first: Int
+
+    """
+    Cursor indicating the item after which to fetch.
+    """
+    after: String # Keep as String for opaque cursor
+
+    """
+    Returns the last n items before the specified cursor.
+    """
+    last: Int
+
+    """
+    Cursor indicating the item before which to fetch.
+    """
+    before: String # Keep as String for opaque cursor
+}
+
+type Query {
+    """
+    Fetches a paginated list of API events based on specified filters.
+    """
+    apiEvents(
+        """
+        Filtering, sorting, and pagination options.
+        """
+        filters: Filters
+    ): ApiEventConnection!
+}
+
+# Todo: Add export and collection support
